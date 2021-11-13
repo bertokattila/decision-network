@@ -6,11 +6,20 @@ class Node:
         self.parents = parents
         self.id = id
         self.CPT = CPT
+        self.is_evidence = False
+    def set_evidence(self, val):
+        self.is_evidence = True
+        self.value = val
 
 class CPTRow:
     def __init__(self, parent_values, probabilities):
         self.parent_values = parent_values
         self.probabilities = probabilities
+class DecisionTableRow:
+     def __init__(self, target_val, decision, usefullness):
+            self.target_val = target_val
+            self.decision = decision
+            self.usefullness = usefullness
 
 
 nodes = []
@@ -58,5 +67,23 @@ while number_of_nodes > 0:
     nodes.append(Node(len(nodes), number_of_values, parents, cpt))
     number_of_nodes = number_of_nodes - 1
 
+number_of_evidence_variables = int(input.readline())
+while number_of_evidence_variables > 0:
+    line = input.readline().split("\t")
+    nodes[int(line[0])].set_evidence(int(line[1]))
+    number_of_evidence_variables = number_of_evidence_variables - 1
+
+target_variable = nodes[int(input.readline())]
+number_of_decisions = int(input.readline())
+
+decision_table = []
+i = number_of_decisions * target_variable.num_of_values
+while i > 0:
+    line = input.readline().split("\t")
+    target_var_val = int(line[0])
+    decision_index = int(line[1])
+    usefullness = float(line[2])
+    decision_table.append(DecisionTableRow(target_var_val, decision_index, usefullness))
+    i = i - 1
 
 print("kesz")
