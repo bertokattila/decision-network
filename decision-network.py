@@ -8,6 +8,8 @@ class Node:
         self.id = id
         self.CPT = CPT
         self.is_evidence = False
+        self.evidence_reset = False
+        
     def set_evidence(self, val):
         self.is_evidence = True
         self.value = val
@@ -35,43 +37,37 @@ def enumeration_ask(target_var, nodes):
     results = []
     while value < target_var.num_of_values:
         target_var.set_evidence(value)
-        val_prob = enumerate_all(copy.deepcopy(nodes))
+        val_prob = enumerate_all(copy.deepcopy(nodes), len(nodes))
         results.append(val_prob)
         value = value + 1
-    #print(results)
     normalize(results)
     return results
     
-def enumerate_all(nodes):
-    if len(nodes) == 0: return 1.0
-    y = nodes[0]
+def enumerate_all(nodes, nodes_left):
+    if nodes_left == 0: return 1.0
+    y = nodes[len(nodes) - nodes_left]
+    nodes_left = nodes_left - 1
     values_assigned_to_parents = []
     for parent in y.parents:
         values_assigned_to_parents.append(parent.value)
-    #print(values_assigned_to_parents)
     if(y.is_evidence):
-        nodes.pop(0)
-        nodes_cpy = copy.copy(nodes)
-        return y.CPT[tuple(values_assigned_to_parents)][y.value] * enumerate_all(nodes_cpy)
-        
+        return y.CPT[tuple(values_assigned_to_parents)][y.value] * enumerate_all(nodes, copy.deepcopy(nodes_left))
     else:
         sum_val = 0.0;
         value = 0
-        nodes.pop(0)
         while value < y.num_of_values:
             y.set_evidence(value)
-            sum_val = sum_val + y.CPT[tuple(values_assigned_to_parents)][value] * enumerate_all(copy.deepcopy(nodes))
+            y.evidence_reset = True
+            sum_val = sum_val + y.CPT[tuple(values_assigned_to_parents)][value] * enumerate_all(nodes, copy.deepcopy(nodes_left))
+            if y.evidence_reset:
+                y.is_evidence = False
             value = value + 1
             
         return sum_val
 
-        
-        
-
 nodes = []
 #read input
-input = open("sample-inputs/input1.txt")
-#input = sys.stdin
+input = sys.stdin
 
 number_of_nodes = int(input.readline())
 while number_of_nodes > 0:
@@ -149,4 +145,3 @@ for item in prob_results:
     print(item)
     
 print(usefullness_values.index(max(usefullness_values)))
-
