@@ -38,9 +38,9 @@ def enumeration_ask(target_var, nodes):
         val_prob = enumerate_all(copy.deepcopy(nodes))
         results.append(val_prob)
         value = value + 1
-    print(results)
+    #print(results)
     normalize(results)
-    print(results)
+    return results
     
 def enumerate_all(nodes):
     if len(nodes) == 0: return 1.0
@@ -49,8 +49,8 @@ def enumerate_all(nodes):
     for parent in y.parents:
         values_assigned_to_parents.append(parent.value)
     if(y.is_evidence):
-        nodes_cpy = copy.deepcopy(nodes)
-        nodes_cpy.pop(0)
+        nodes.pop(0)
+        nodes_cpy = copy.copy(nodes)
         return y.CPT[tuple(values_assigned_to_parents)][y.value] * enumerate_all(nodes_cpy)
         
     else:
@@ -70,7 +70,7 @@ def enumerate_all(nodes):
 nodes = []
 #read input
 input = open("sample-inputs/input1.txt")
-#f = sys.stdin
+#input = sys.stdin
 
 number_of_nodes = int(input.readline())
 while number_of_nodes > 0:
@@ -121,15 +121,31 @@ while number_of_evidence_variables > 0:
 target_variable = nodes[int(input.readline())]
 number_of_decisions = int(input.readline())
 
-decision_table = []
+decision_table = dict()
 i = number_of_decisions * target_variable.num_of_values
 while i > 0:
     line = input.readline().split("\t")
     target_var_val = int(line[0])
     decision_index = int(line[1])
     usefullness = float(line[2])
-    decision_table.append(DecisionTableRow(target_var_val, decision_index, usefullness))
+    decision_table[tuple([target_var_val, decision_index])] = usefullness
     i = i - 1
-enumeration_ask(target_variable, nodes)
 
-print("kesz")
+prob_results = enumeration_ask(target_variable, nodes)
+
+decision_index = 0
+usefullness_values = []
+while decision_index < number_of_decisions:
+    target_var_val_index = 0
+    usefullness_sum = 0
+    while target_var_val_index < target_variable.num_of_values:
+        usefullness_sum = usefullness_sum + prob_results[target_var_val_index] * decision_table[tuple([target_var_val_index, decision_index])]
+        target_var_val_index = target_var_val_index + 1
+    usefullness_values.append(usefullness_sum)
+    decision_index = decision_index + 1
+
+for item in prob_results:
+    print(item)
+    
+print(usefullness_values.index(max(usefullness_values)))
+
