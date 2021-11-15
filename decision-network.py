@@ -48,6 +48,7 @@ def enumerate_all(nodes):
     values_assigned_to_parents = []
     for parent in y.parents:
         values_assigned_to_parents.append(parent.value)
+    #print(values_assigned_to_parents)
     if(y.is_evidence):
         nodes.pop(0)
         nodes_cpy = copy.copy(nodes)
