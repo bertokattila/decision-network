@@ -1,4 +1,5 @@
 import sys
+import copy
 
 class Node:
     def __init__(self, id, num_of_values, parents, CPT):
@@ -21,10 +22,54 @@ class DecisionTableRow:
             self.decision = decision
             self.usefullness = usefullness
 
+def normalize(values):
+    sum_v = sum(values)
+    index = 0
+    while index < len(values):
+        values[index] = values[index] / sum_v
+        index = index + 1
+    return values
+        
+def enumeration_ask(target_var, nodes):
+    value = 0
+    results = []
+    while value < target_var.num_of_values:
+        target_var.set_evidence(value)
+        val_prob = enumerate_all(copy.deepcopy(nodes))
+        results.append(val_prob)
+        value = value + 1
+    print(results)
+    normalize(results)
+    print(results)
+    
+def enumerate_all(nodes):
+    if len(nodes) == 0: return 1.0
+    y = nodes[0]
+    values_assigned_to_parents = []
+    for parent in y.parents:
+        values_assigned_to_parents.append(parent.value)
+    if(y.is_evidence):
+        nodes_cpy = copy.deepcopy(nodes)
+        nodes_cpy.pop(0)
+        return y.CPT[tuple(values_assigned_to_parents)][y.value] * enumerate_all(nodes_cpy)
+        
+    else:
+        sum_val = 0.0;
+        value = 0
+        nodes.pop(0)
+        while value < y.num_of_values:
+            y.set_evidence(value)
+            sum_val = sum_val + y.CPT[tuple(values_assigned_to_parents)][value] * enumerate_all(copy.deepcopy(nodes))
+            value = value + 1
+            
+        return sum_val
+
+        
+        
 
 nodes = []
 #read input
-input = open("sample-inputs/input0.txt")
+input = open("sample-inputs/input1.txt")
 #f = sys.stdin
 
 number_of_nodes = int(input.readline())
@@ -41,7 +86,7 @@ while number_of_nodes > 0:
         parents.append(nodes[parent_index])
         number_of_parents_iterator = number_of_parents_iterator - 1
         i = i + 1
-    cpt = []
+    cpt = dict()
     while i < len(line):
         parent_values_int = []
         probabilities_int = []
@@ -61,8 +106,8 @@ while number_of_nodes > 0:
             for item in probabilities:
                 probabilities_int.append(float(item))
 
-        cpt_row = CPTRow(parent_values_int, probabilities_int)
-        cpt.append(cpt_row)
+        
+        cpt[tuple(parent_values_int)] = tuple(probabilities_int)
         i = i + 1
     nodes.append(Node(len(nodes), number_of_values, parents, cpt))
     number_of_nodes = number_of_nodes - 1
@@ -85,5 +130,6 @@ while i > 0:
     usefullness = float(line[2])
     decision_table.append(DecisionTableRow(target_var_val, decision_index, usefullness))
     i = i - 1
+enumeration_ask(target_variable, nodes)
 
 print("kesz")
